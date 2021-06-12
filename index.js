@@ -17,18 +17,24 @@ async function main () {
     let db = await MongoUtil.connect(process.env.MONGO_URL, 'sample_artgallery')
 
 
-    // CREATE
+    // CREATE: ART POST
     app.post('/create_art_post', async (req,res) => {
         
         try {
+            let post_date = req.body.post_date
+            let poster_name = req.body.poster_name
             let art_type = req.body.art_type
             let art_subject = req.body.art_subject
-            let date = req.body.date
+            let review_count = req.body.review_count
+            let like_count = req.body.like_count
             let db = MongoUtil.getDB()
             let result = await db.collection('artpost').insertOne({
+                'post_date':new Date(post_date),
+                'poster_name':poster_name,
                 'art_type':art_type,
                 'art_subject':art_subject,
-                'date':new Date(date)
+                'review_count':review_count,
+                'like_count':like_count
             })
             res.status(200)
             res.send(result)
@@ -39,6 +45,34 @@ async function main () {
         }
 
     })
+
+
+    // CREATE: REVIEW
+    app.post('/create_review', async (req,res)=> {
+        try {
+            let review_date = req.body.review_date
+            let reviewer_name = req.body.reviewer_name
+            let liked_post = req.body.liked_post
+            let review = req.body.review
+            let db = MongoUtil.getDB()
+            let result = await db.collection('reviews').insertOne({
+                'review_date': new Date(review_date),
+                'reviewer_name': reviewer_name,
+                'liked_post': liked_post,
+                'review': review 
+            })
+            res.status(200)
+            res.send(result)
+
+        } catch (e) {
+            res.send(500)
+            res.send('Unexpected internal server error')
+            console.log(e)
+        }
+    })
+
+
+
 
     // SEARCH
     app.get('/art_gallery',async (req,res) => {
