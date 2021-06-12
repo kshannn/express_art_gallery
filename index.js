@@ -13,13 +13,13 @@ app.use(express.json())
 app.use(cors())
 
 // SETUP END
-async function main () {
+async function main() {
     let db = await MongoUtil.connect(process.env.MONGO_URL, 'sample_artgallery')
 
 
     // CREATE: ART POST
-    app.post('/create_art_post', async (req,res) => {
-        
+    app.post('/create_art_post', async (req, res) => {
+
         try {
             let post_date = req.body.post_date
             let poster_name = req.body.poster_name
@@ -28,16 +28,16 @@ async function main () {
             let review_count = req.body.review_count
             let like_count = req.body.like_count
             let db = MongoUtil.getDB()
-            let result = await db.collection('artpost').insertOne({
-                'post_date':new Date(post_date),
-                'poster_name':poster_name,
-                'art_type':art_type,
-                'art_subject':art_subject,
-                'review_count':review_count,
-                'like_count':like_count
+            let results = await db.collection('artpost').insertOne({
+                'post_date': new Date(post_date),
+                'poster_name': poster_name,
+                'art_type': art_type,
+                'art_subject': art_subject,
+                'review_count': review_count,
+                'like_count': like_count
             })
             res.status(200)
-            res.send(result)
+            res.send(results)
         } catch (e) {
             res.status(500)
             res.send('Unexpected internal server error')
@@ -48,21 +48,21 @@ async function main () {
 
 
     // CREATE: REVIEW
-    app.post('/create_review', async (req,res)=> {
+    app.post('/create_review', async (req, res) => {
         try {
             let review_date = req.body.review_date
             let reviewer_name = req.body.reviewer_name
             let liked_post = req.body.liked_post
             let review = req.body.review
             let db = MongoUtil.getDB()
-            let result = await db.collection('reviews').insertOne({
+            let results = await db.collection('reviews').insertOne({
                 'review_date': new Date(review_date),
                 'reviewer_name': reviewer_name,
                 'liked_post': liked_post,
-                'review': review 
+                'review': review
             })
             res.status(200)
-            res.send(result)
+            res.send(results)
 
         } catch (e) {
             res.status(500)
@@ -75,11 +75,11 @@ async function main () {
 
 
     // READ: SEARCH ART
-    app.get('/art_gallery',async (req,res) => {
+    app.get('/art_gallery', async (req, res) => {
         let art = req.query.search // this "search" doesn't matter, you can put anything you want
         let criteria = {}
 
-        if (art){
+        if (art) {
             criteria['art'] = {
                 '$regex': art,
                 '$options': 'i'
@@ -88,19 +88,19 @@ async function main () {
 
         let db = MongoUtil.getDB()
         let results = await db.collection('artpost').find(criteria).toArray()
-        
+
         res.status(200)
         res.send(results)
     })
 
     // READ: SEARCH REVIEW
-    app.get('/review_list', async (req,res) => {
+    app.get('/review_list', async (req, res) => {
         let review = req.query.search
-        
+
 
         let criteria = {}
 
-        if (review){
+        if (review) {
             criteria['review'] = {
                 '$regex': review,
                 '$options': 'i'
@@ -114,8 +114,60 @@ async function main () {
         res.send(results)
     })
 
+    // UPDATE: ART POST
+    app.put('/edit_artpost/:id', async (req, res) => {
+        let post_date = req.body.post_date
+        let poster_name = req.body.poster_name
+        let art_type = req.body.art_type
+        let art_subject = req.body.art_subject
+        let review_count = req.body.review_count
+        let like_count = req.body.like_count
+
+        let db = MongoUtil.getDB()
+        let results = await db.collection('artpost').updateOne({
+            '_id': ObjectId(req.params.id)
+        }, {
+            '$set': {
+                'post_date': new Date(post_date),
+                'poster_name': poster_name,
+                'art_type': art_type,
+                'art_subject': art_subject,
+                'review_count': review_count,
+                'like_count': like_count
+            }
+        })
+
+        res.status(200)
+        res.send(results)
+    })
+
+
+    // UPDATE: REVIEW
+    app.put('/edit_review/:id', async (req, res) => {
+        let review_date = req.body.review_date
+        let reviewer_name = req.body.reviewer_name
+        let liked_post = req.body.liked_post
+        let review = req.body.review
+
+        let db = MongoUtil.getDB()
+        let results = await db.collection('reviews').updateOne({
+            '_id': ObjectId(req.params.id)
+        }, {
+            '$set': {
+                'review_date': new Date(review_date),
+                'reviewer_name': reviewer_name,
+                'liked_post': liked_post,
+                'review': review
+            }
+        })
+
+        res.status(200)
+        res.send(results)
+    })
+
+
     // DELETE: ART POST
-    app.delete('/delete_artpost/:id', async (req,res)=>{
+    app.delete('/delete_artpost/:id', async (req, res) => {
         let db = MongoUtil.getDB()
         let results = await db.collection('artpost').deleteOne({
             '_id': ObjectId(req.params.id)
@@ -125,7 +177,7 @@ async function main () {
     })
 
     // DELETE: REVIEW
-    app.delete('/delete_review/:id', async (req,res)=>{
+    app.delete('/delete_review/:id', async (req, res) => {
         let db = MongoUtil.getDB()
         let results = await db.collection('reviews').deleteOne({
             '_id': ObjectId(req.params.id)
@@ -140,6 +192,6 @@ main();
 
 
 
-app.listen(3000,() => {
+app.listen(3000, () => {
     console.log('Server started')
 })
