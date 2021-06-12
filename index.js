@@ -40,7 +40,25 @@ async function main () {
 
     })
 
+    // SEARCH
+    app.get('/art_gallery',async (req,res) => {
+        let art = req.query.search // this "search" doesn't matter, you can put anything you want
 
+        let criteria = {}
+
+        if (art){
+            criteria['art'] = {
+                '$regex': art,
+                '$options': 'i'
+            }
+        }
+
+        let db = MongoUtil.getDB()
+        let results = await db.collection('artpost').find(criteria).toArray()
+
+        res.send(results)
+        res.status(200)
+    })
 
 }
 
