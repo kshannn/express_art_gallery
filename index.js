@@ -39,7 +39,7 @@ async function main () {
             res.status(200)
             res.send(result)
         } catch (e) {
-            res.send(500)
+            res.status(500)
             res.send('Unexpected internal server error')
             console.log(e)
         }
@@ -65,7 +65,7 @@ async function main () {
             res.send(result)
 
         } catch (e) {
-            res.send(500)
+            res.status(500)
             res.send('Unexpected internal server error')
             console.log(e)
         }
@@ -74,10 +74,9 @@ async function main () {
 
 
 
-    // SEARCH
+    // READ: SEARCH ART
     app.get('/art_gallery',async (req,res) => {
         let art = req.query.search // this "search" doesn't matter, you can put anything you want
-
         let criteria = {}
 
         if (art){
@@ -89,9 +88,50 @@ async function main () {
 
         let db = MongoUtil.getDB()
         let results = await db.collection('artpost').find(criteria).toArray()
-
-        res.send(results)
+        
         res.status(200)
+        res.send(results)
+    })
+
+    // READ: SEARCH REVIEW
+    app.get('/review_list', async (req,res) => {
+        let review = req.query.search
+        
+
+        let criteria = {}
+
+        if (review){
+            criteria['review'] = {
+                '$regex': review,
+                '$options': 'i'
+            }
+        }
+
+        let db = MongoUtil.getDB()
+        let results = await db.collection('reviews').find(criteria).toArray()
+
+        res.status(200)
+        res.send(results)
+    })
+
+    // DELETE: ART POST
+    app.delete('/delete_artpost/:id', async (req,res)=>{
+        let db = MongoUtil.getDB()
+        let results = await db.collection('artpost').deleteOne({
+            '_id': ObjectId(req.params.id)
+        })
+        res.status(200)
+        res.send(results)
+    })
+
+    // DELETE: REVIEW
+    app.delete('/delete_review/:id', async (req,res)=>{
+        let db = MongoUtil.getDB()
+        let results = await db.collection('reviews').deleteOne({
+            '_id': ObjectId(req.params.id)
+        })
+        res.status(200)
+        res.send(results)
     })
 
 }
