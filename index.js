@@ -14,7 +14,7 @@ app.use(cors())
 
 // SETUP END
 async function main() {
-    let db = await MongoUtil.connect(process.env.MONGO_URL, 'sample_artgallery')
+    let db = await MongoUtil.connect(process.env.MONGO_URL, 'artgallery')
 
 
     // CREATE: ART POST
@@ -23,14 +23,18 @@ async function main() {
         try {
             let post_date = req.body.post_date
             let poster_name = req.body.poster_name
+            let image = req.body.image
+            let art_title = req.body.art_title
             let art_type = req.body.art_type
             let art_subject = req.body.art_subject
             let review_count = req.body.review_count
             let like_count = req.body.like_count
             let db = MongoUtil.getDB()
-            let results = await db.collection('artpost').insertOne({
-                'post_date': new Date(post_date),
+            let results = await db.collection('artposts').insertOne({
+                'post_date': post_date,
                 'poster_name': poster_name,
+                'image': image,
+                'art_title': art_title,
                 'art_type': art_type,
                 'art_subject': art_subject,
                 'review_count': review_count,
@@ -87,7 +91,7 @@ async function main() {
         }
 
         let db = MongoUtil.getDB()
-        let results = await db.collection('artpost').find(criteria).toArray()
+        let results = await db.collection('artposts').find(criteria).toArray()
 
         res.status(200)
         res.send(results)
@@ -118,18 +122,22 @@ async function main() {
     app.put('/edit_artpost/:id', async (req, res) => {
         let post_date = req.body.post_date
         let poster_name = req.body.poster_name
+        let image = req.body.image
+        let art_title = req.body.title
         let art_type = req.body.art_type
         let art_subject = req.body.art_subject
         let review_count = req.body.review_count
         let like_count = req.body.like_count
 
         let db = MongoUtil.getDB()
-        let results = await db.collection('artpost').updateOne({
+        let results = await db.collection('artposts').updateOne({
             '_id': ObjectId(req.params.id)
         }, {
             '$set': {
                 'post_date': new Date(post_date),
                 'poster_name': poster_name,
+                'image': image,
+                'art_title': art_title,
                 'art_type': art_type,
                 'art_subject': art_subject,
                 'review_count': review_count,
@@ -169,7 +177,7 @@ async function main() {
     // DELETE: ART POST
     app.delete('/delete_artpost/:id', async (req, res) => {
         let db = MongoUtil.getDB()
-        let results = await db.collection('artpost').deleteOne({
+        let results = await db.collection('artposts').deleteOne({
             '_id': ObjectId(req.params.id)
         })
         res.status(200)
