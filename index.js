@@ -27,6 +27,7 @@ async function main() {
             let art_title = req.body.art_title
             let art_type = req.body.art_type
             let art_subject = req.body.art_subject
+            let art_description = req.body.art_description
             let review_count = req.body.review_count
             let like_count = req.body.like_count
             let db = MongoUtil.getDB()
@@ -37,6 +38,7 @@ async function main() {
                 'art_title': art_title,
                 'art_type': art_type,
                 'art_subject': art_subject,
+                'art_description': art_description,
                 'review_count': review_count,
                 'like_count': like_count
             })
@@ -126,6 +128,7 @@ async function main() {
         let art_title = req.body.title
         let art_type = req.body.art_type
         let art_subject = req.body.art_subject
+        let art_description = req.body.art_description
         let review_count = req.body.review_count
         let like_count = req.body.like_count
 
@@ -140,6 +143,7 @@ async function main() {
                 'art_title': art_title,
                 'art_type': art_type,
                 'art_subject': art_subject,
+                'art_description': art_description,
                 'review_count': review_count,
                 'like_count': like_count
             }
