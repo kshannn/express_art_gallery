@@ -93,7 +93,7 @@ async function main() {
         }
 
         let db = MongoUtil.getDB()
-        let results = await db.collection('artposts').find(criteria).toArray()
+        let results = await db.collection('artposts').find(criteria).sort({post_date:-1}).toArray()
 
         res.status(200)
         res.send(results)
