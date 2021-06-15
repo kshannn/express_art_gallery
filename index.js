@@ -125,7 +125,7 @@ async function main() {
         let post_date = req.body.post_date
         let poster_name = req.body.poster_name
         let image = req.body.image
-        let art_title = req.body.title
+        let art_title = req.body.art_title
         let art_type = req.body.art_type
         let art_subject = req.body.art_subject
         let art_description = req.body.art_description
