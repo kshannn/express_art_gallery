@@ -15,7 +15,8 @@ app.use(cors())
 // SETUP END
 async function main() {
     let db = await MongoUtil.connect(process.env.MONGO_URL, 'artgallery')
-
+    
+    // ==================== CREATE ====================
     // CREATE: ART POST
     app.post('/create/artpost', async (req, res) => {
         try {
@@ -30,9 +31,11 @@ async function main() {
                 art_description,
                 statistics
             } = req.body
-            let {review_count, like_count} = req.body.statistics
+            let {
+                review_count,
+                like_count
+            } = req.body.statistics
 
-            
             // If undefined
             art_subject = art_subject || []
 
@@ -63,33 +66,64 @@ async function main() {
         }
     })
 
-
     // CREATE: REVIEW
+    // app.post('/art_gallery/:id/create/review', async (req, res) => {
+    //     try {
+    //         let db = MongoUtil.getDB()
 
+    //         let selectedArt = await db.collection('artposts').findOne({
+    //             '_id': ObjectId(req.params.id)
+    //         })
+
+    //         let {
+    //             reviewer_name,
+    //             liked_post,
+    //             review
+    //         } = req.body
+    //         art_id = selectedArt._id
+
+    //         let results = await db.collection('reviews').insertOne({
+    //             art_id,
+    //             'review_date': new Date(),
+    //             reviewer_name,
+    //             liked_post,
+    //             review
+    //         })
+    //         res.status(200)
+    //         res.send(results)
+
+    //     } catch (e) {
+    //         res.status(500)
+    //         res.send('Unexpected internal server error')
+    //         console.log(e)
+    //     }
+    // })
+
+    // REVISED CREATE REVIEW
     app.post('/art_gallery/:id/create/review', async (req, res) => {
         try {
             let db = MongoUtil.getDB()
-
-            let selectedArt = await db.collection('artposts').findOne({
-                '_id': ObjectId(req.params.id)
-            })
-        
 
             let {
                 reviewer_name,
                 liked_post,
                 review
             } = req.body
-            art_id = selectedArt._id
-        
-           
-            let results = await db.collection('reviews').insertOne({
-                art_id,
-                'review_date': new Date(),
-                reviewer_name,
-                liked_post,
-                review
+    
+            let results = await db.collection('artposts').updateOne({
+                '_id': ObjectId(req.params.id)
+            },{
+                '$push':{
+                    'reviews':{
+                        id: new ObjectId(),
+                        review_date: new Date(),
+                        reviewer_name,
+                        liked_post,
+                        review
+                    }
+                }
             })
+            
             res.status(200)
             res.send(results)
 
@@ -101,28 +135,8 @@ async function main() {
     })
 
 
-    // *** Muted out until filter/search
-    // READ: SEARCH ART
-    // app.get('/art_gallery', async (req, res) => {
-    //     let art = req.query.search // this "search" doesn't matter, you can put anything you want
-    //     let criteria = {}
-
-    //     if (art) {
-    //         criteria['art'] = {
-    //             '$regex': art,
-    //             '$options': 'i'
-    //         }
-    //     }
-
-    //     let db = MongoUtil.getDB()
-    //     let results = await db.collection('artposts').find(criteria).sort({
-    //         post_date: -1
-    //     }).toArray()
-
-    //     res.status(200)
-    //     res.send(results)
-    // })
-
+    // ==================== READ ====================
+    
     // READ: ALL ART
     app.get('/art_gallery', async (req, res) => {
 
@@ -146,6 +160,43 @@ async function main() {
         res.send(results)
     })
 
+    // READ: ALL REVIEWS FOR ONE ART POST
+    app.get('/art_gallery/:id/review_list', async (req, res) => {
+        let db = MongoUtil.getDB()
+        let results = await db.collection('reviews').find({
+            'art_id': ObjectId(req.params.id)
+        }).sort({
+            review_date: -1
+        }).toArray()
+
+
+        res.status(200)
+        res.send(results)
+    })
+
+    // *** Muted out until filter/search
+    // READ: SEARCH ART
+    // app.get('/art_gallery', async (req, res) => {
+    //     let art = req.query.search // this "search" doesn't matter, you can put anything you want
+    //     let criteria = {}
+
+    //     if (art) {
+    //         criteria['art'] = {
+    //             '$regex': art,
+    //             '$options': 'i'
+    //         }
+    //     }
+
+    //     let db = MongoUtil.getDB()
+    //     let results = await db.collection('artposts').find(criteria).sort({
+    //         post_date: -1
+    //     }).toArray()
+
+    //     res.status(200)
+    //     res.send(results)
+    // })
+
+
     // *** Muted out until filter/search
     // READ: SEARCH REVIEW
     // app.get('/review_list', async (req, res) => {
@@ -168,17 +219,7 @@ async function main() {
     //     res.send(results)
     // })
 
-    // REVISED READ: ALL REVIEWS FOR ONE ART POST
-    app.get('/art_gallery/:id/review_list', async (req, res) => {
-        let db = MongoUtil.getDB()
-        let results = await db.collection('reviews').find({
-            'art_id':ObjectId(req.params.id)
-        }).sort({review_date: -1}).toArray()
-
-
-        res.status(200)
-        res.send(results)
-    })
+    
 
 
     // UPDATE: ART POST
