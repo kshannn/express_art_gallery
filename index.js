@@ -16,7 +16,7 @@ app.use(cors())
 async function main() {
     let db = await MongoUtil.connect(process.env.MONGO_URL, 'artgallery')
 
-    // REVISED: CREATE: ART POST
+    // CREATE: ART POST
     app.post('/create/artpost', async (req, res) => {
         try {
 
@@ -28,10 +28,11 @@ async function main() {
                 art_type,
                 art_subject,
                 art_description,
-                review_count,
-                like_count
+                statistics
             } = req.body
+            let {review_count, like_count} = req.body.statistics
 
+            
             // If undefined
             art_subject = art_subject || []
 
@@ -47,8 +48,10 @@ async function main() {
                 art_type,
                 art_subject,
                 art_description,
-                review_count,
-                like_count
+                statistics: {
+                    review_count,
+                    like_count
+                }
             })
 
             res.status(200)
@@ -60,76 +63,8 @@ async function main() {
         }
     })
 
-    // CREATE: ART POST
-    // app.post('/create_art_post', async (req, res) => {
 
-    //     try {
-    //         let post_date = req.body.post_date
-    //         let poster_name = req.body.poster_name
-    //         let image = req.body.image
-    //         let art_title = req.body.art_title
-    //         let art_type = req.body.art_type
-    //         let art_subject = req.body.art_subject
-    //         let art_description = req.body.art_description
-    //         let review_count = req.body.review_count
-    //         let like_count = req.body.like_count
-    //         let db = MongoUtil.getDB()
-    //         let results = await db.collection('artposts').insertOne({
-    //             'post_date': post_date,
-    //             'poster_name': poster_name,
-    //             'image': image,
-    //             'art_title': art_title,
-    //             'art_type': art_type,
-    //             'art_subject': art_subject,
-    //             'art_description': art_description,
-    //             'review_count': review_count,
-    //             'like_count': like_count
-    //         })
-    //         res.status(200)
-    //         res.send(results)
-    //     } catch (e) {
-    //         res.status(500)
-    //         res.send('Unexpected internal server error')
-    //         console.log(e)
-    //     }
-
-    // })
-
-    // delete this if the revised one below works
     // CREATE: REVIEW
-    // app.post('/create/review', async (req, res) => {
-    //     try {
-    //         let {
-    //             art_id,
-    //             review_date,
-    //             reviewer_name,
-    //             liked_post,
-    //             review
-    //         } = req.body
-    //         // let art_id = req.body.art_id
-    //         // let review_date = req.body.review_date
-    //         // let reviewer_name = req.body.reviewer_name
-    //         // let liked_post = req.body.liked_post
-    //         // let review = req.body.review
-    //         let db = MongoUtil.getDB()
-    //         let results = await db.collection('reviews').insertOne({
-    //             art_id,
-    //             'review_date': new Date(review_date),
-    //             reviewer_name,
-    //             liked_post,
-    //             review
-    //         })
-    //         res.status(200)
-    //         res.send(results)
-
-    //     } catch (e) {
-    //         res.status(500)
-    //         res.send('Unexpected internal server error')
-    //         console.log(e)
-    //     }
-    // })
-
-    // REVISED CREATE: REVIEW
 
     app.post('/art_gallery/:id/create/review', async (req, res) => {
         try {
@@ -188,7 +123,7 @@ async function main() {
     //     res.send(results)
     // })
 
-    // REVISED READ: ALL ART
+    // READ: ALL ART
     app.get('/art_gallery', async (req, res) => {
 
         let db = MongoUtil.getDB()
@@ -200,7 +135,7 @@ async function main() {
         res.send(results)
     })
 
-    // REVISED READ: ONE ART
+    // READ: ONE ART
     app.get('/art_gallery/:id', async (req, res) => {
         let db = MongoUtil.getDB()
         let results = await db.collection('artposts').findOne({
@@ -247,7 +182,7 @@ async function main() {
 
 
     // UPDATE: ART POST
-    app.put('/edit_artpost/:id', async (req, res) => {
+    app.put('/artpost/edit/:id', async (req, res) => {
         let post_date = req.body.post_date
         let poster_name = req.body.poster_name
         let image = req.body.image
