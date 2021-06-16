@@ -95,39 +95,39 @@ async function main() {
 
     // })
 
-
+    // delete this if the revised one below works
     // CREATE: REVIEW
-    app.post('/create/review', async (req, res) => {
-        try {
-            let {
-                art_id,
-                review_date,
-                reviewer_name,
-                liked_post,
-                review
-            } = req.body
-            // let art_id = req.body.art_id
-            // let review_date = req.body.review_date
-            // let reviewer_name = req.body.reviewer_name
-            // let liked_post = req.body.liked_post
-            // let review = req.body.review
-            let db = MongoUtil.getDB()
-            let results = await db.collection('reviews').insertOne({
-                art_id,
-                'review_date': new Date(review_date),
-                reviewer_name,
-                liked_post,
-                review
-            })
-            res.status(200)
-            res.send(results)
+    // app.post('/create/review', async (req, res) => {
+    //     try {
+    //         let {
+    //             art_id,
+    //             review_date,
+    //             reviewer_name,
+    //             liked_post,
+    //             review
+    //         } = req.body
+    //         // let art_id = req.body.art_id
+    //         // let review_date = req.body.review_date
+    //         // let reviewer_name = req.body.reviewer_name
+    //         // let liked_post = req.body.liked_post
+    //         // let review = req.body.review
+    //         let db = MongoUtil.getDB()
+    //         let results = await db.collection('reviews').insertOne({
+    //             art_id,
+    //             'review_date': new Date(review_date),
+    //             reviewer_name,
+    //             liked_post,
+    //             review
+    //         })
+    //         res.status(200)
+    //         res.send(results)
 
-        } catch (e) {
-            res.status(500)
-            res.send('Unexpected internal server error')
-            console.log(e)
-        }
-    })
+    //     } catch (e) {
+    //         res.status(500)
+    //         res.send('Unexpected internal server error')
+    //         console.log(e)
+    //     }
+    // })
 
     // REVISED CREATE: REVIEW
 
@@ -238,7 +238,8 @@ async function main() {
         let db = MongoUtil.getDB()
         let results = await db.collection('reviews').find({
             'art_id':ObjectId(req.params.id)
-        }).toArray()
+        }).sort({review_date: -1}).toArray()
+
 
         res.status(200)
         res.send(results)
