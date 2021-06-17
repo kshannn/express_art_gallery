@@ -140,8 +140,8 @@ async function main() {
     //     res.send(results)
     // })
 
-    
-    // REVISED READ: ALL REVIEWS FOR ONE ART POST
+
+    // READ: ALL REVIEWS FOR ONE ART POST
     app.get('/art_gallery/:id/review_list', async (req, res) => {
         let db = MongoUtil.getDB()
         let results = await db.collection('artposts').find({
@@ -149,14 +149,25 @@ async function main() {
         }).project({
             'reviews': 1
         }).sort({
-            review_date: -1   // sort review by date not working
+            review_date: -1 // sort review by date not working
         }).toArray()
 
-        
+
         res.status(200)
         res.send(results)
     })
 
+    // // READ: SPECIFIC REVIEW
+    // app.get('/art_gallery/:id/review_list/:reviewId', async (req,res) => {
+    //     let db = MongoUtil.getDB()
+    //     let results = await db.collection('artposts').find({
+    //         '_id': ObjectId(req.params.id)
+    //     }).project({
+    //         'reviews': 1
+    //     })
+
+
+    // })
 
     // *** Muted out until filter/search
     // READ: SEARCH ART
@@ -205,10 +216,11 @@ async function main() {
 
 
 
+    // ==================== UPDATE ====================
 
     // UPDATE: ART POST
     app.put('/artpost/edit/:id', async (req, res) => {
-        console.log(req.body)
+
         let {
             post_date, // can take this out
             poster_name,
@@ -248,21 +260,28 @@ async function main() {
 
 
     // UPDATE: REVIEW
-    app.put('/edit_review/:id', async (req, res) => {
-        let review_date = req.body.review_date
-        let reviewer_name = req.body.reviewer_name
-        let liked_post = req.body.liked_post
-        let review = req.body.review
+    app.put('/review/edit/:id', async (req, res) => {
+        // let review_date = req.body.review_date
+        let {
+            reviewer_name,
+            liked_post,
+            review
+        } = req.body
 
         let db = MongoUtil.getDB()
-        let results = await db.collection('reviews').updateOne({
-            '_id': ObjectId(req.params.id)
+        let results = await db.collection('artposts').updateOne({
+            'reviews':{
+                '$elemMatch':{
+                    'id':ObjectId(req.params.id)
+                }
+            }
         }, {
+
             '$set': {
-                'review_date': new Date(review_date),
-                'reviewer_name': reviewer_name,
-                'liked_post': liked_post,
-                'review': review
+                'reviews.$.review_date': new Date(),
+                'reviews.$.reviewer_name': reviewer_name,
+                'reviews.$.liked_post': liked_post,
+                'reviews.$.review': review
             }
         })
 
@@ -270,6 +289,7 @@ async function main() {
         res.send(results)
     })
 
+    // ==================== DELETE ====================
 
     // DELETE: ART POST
     app.delete('/artpost/delete/:id', async (req, res) => {
