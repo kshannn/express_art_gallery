@@ -140,16 +140,19 @@ async function main() {
     //     res.send(results)
     // })
 
+    
     // REVISED READ: ALL REVIEWS FOR ONE ART POST
     app.get('/art_gallery/:id/review_list', async (req, res) => {
         let db = MongoUtil.getDB()
         let results = await db.collection('artposts').find({
             '_id': ObjectId(req.params.id)
-        }, {
+        }).project({
             'reviews': 1
+        }).sort({
+            review_date: -1   // sort review by date not working
         }).toArray()
 
-
+        
         res.status(200)
         res.send(results)
     })
@@ -269,7 +272,7 @@ async function main() {
 
 
     // DELETE: ART POST
-    app.delete('/delete_artpost/:id', async (req, res) => {
+    app.delete('/artpost/delete/:id', async (req, res) => {
         let db = MongoUtil.getDB()
         let results = await db.collection('artposts').deleteOne({
             '_id': ObjectId(req.params.id)
