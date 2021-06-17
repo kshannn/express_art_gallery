@@ -302,10 +302,20 @@ async function main() {
     })
 
     // DELETE: REVIEW
-    app.delete('/delete_review/:id', async (req, res) => {
+    app.delete('/review/delete/:id', async (req, res) => {
         let db = MongoUtil.getDB()
-        let results = await db.collection('reviews').deleteOne({
-            '_id': ObjectId(req.params.id)
+        let results = await db.collection('artposts').updateOne({
+            'reviews':{
+                '$elemMatch':{
+                    'id':ObjectId(req.params.id)
+                }
+            }
+        },{
+            '$pull':{
+                'reviews':{
+                    'id':ObjectId(req.params.id)
+                }
+            }
         })
         res.status(200)
         res.send(results)
