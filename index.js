@@ -29,11 +29,8 @@ async function main() {
                 art_type,
                 art_subject,
                 art_description,
+                statistics
             } = req.body
-            let {
-                review_count,
-                like_count
-            } = req.body.statistics
 
             // If undefined
             art_subject = art_subject || []
@@ -50,10 +47,8 @@ async function main() {
                 art_type,
                 art_subject,
                 art_description,
-                statistics: {
-                    review_count,
-                    like_count
-                }
+                statistics,
+                reviews: []
             })
 
             res.status(200)
@@ -61,7 +56,6 @@ async function main() {
         } catch (e) {
             res.status(500)
             res.send('Unexpected internal server error')
-            console.log(e)
         }
     })
 
@@ -96,7 +90,6 @@ async function main() {
         } catch (e) {
             res.status(500)
             res.send('Unexpected internal server error')
-            console.log(e)
         }
     })
 
@@ -148,8 +141,6 @@ async function main() {
             '_id': ObjectId(req.params.id)
         }).project({
             'reviews': 1
-        }).sort({
-            review_date: -1 // sort review by date not working
         }).toArray()
 
 
