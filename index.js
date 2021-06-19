@@ -3,6 +3,7 @@ const cors = require('cors')
 const ObjectId = require('mongodb').ObjectId
 const MongoUtil = require('./MongoUtil.js')
 const dotenv = require('dotenv');
+const { ObjectID } = require('bson');
 dotenv.config();
 
 let app = express()
@@ -23,7 +24,6 @@ async function main() {
         try {
 
             let {
-                post_date,
                 poster_name,
                 image,
                 art_title,
@@ -41,7 +41,7 @@ async function main() {
 
             let db = MongoUtil.getDB()
             let results = await db.collection('artposts').insertOne({
-                post_date,
+                post_date: new Date(),
                 poster_name,
                 image,
                 art_title,
@@ -138,6 +138,22 @@ async function main() {
 
     // ==================== UPDATE ====================
 
+    // UPDATE: ART REVIEW COUNT
+    app.put('/artpost/updateReviewCount/:id', async (req,res) => {
+        let db = MongoUtil.getDB()
+        let results = await db.collection('artposts').updateOne({
+            '_id':ObjectId(req.params.id)
+        },{
+            '$set':{
+                'statistics.review_count': req.body.statistics.review_count
+            }
+        })
+
+        res.status(200)
+        res.send(results)
+    })
+
+
     // UPDATE: ART POST
     app.put('/artpost/edit/:id', async (req, res) => {
 
@@ -181,7 +197,7 @@ async function main() {
     // UPDATE: REVIEW
 
     app.put('/review/edit/:id', async (req, res) => {
-        // let review_date = req.body.review_date
+       
         let {
             reviewer_name,
             liked_post,
