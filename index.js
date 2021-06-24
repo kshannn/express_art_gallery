@@ -118,16 +118,23 @@ async function main() {
         app.get('/art_gallery/search', async (req, res) => {
             let searchTerm = req.query.searchTerm // this "search" doesn't matter, you can put anything you want
             let criteria = {}
+            let criteria2 = {}
     
             if (searchTerm) {
                 criteria['art_title'] = {
                     '$regex': searchTerm,
                     '$options': 'i'
                 }
+                criteria2['poster_name']= {
+                    '$regex': searchTerm,
+                    '$options': 'i'
+                }
             }
 
             let db = MongoUtil.getDB()
-            let results = await db.collection('artposts').find(criteria).toArray()
+            let results = await db.collection('artposts').find({
+                '$or':[criteria,criteria2]
+            }).toArray()
     
             res.status(200)
             res.send(results)
