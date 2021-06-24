@@ -3,7 +3,9 @@ const cors = require('cors')
 const ObjectId = require('mongodb').ObjectId
 const MongoUtil = require('./MongoUtil.js')
 const dotenv = require('dotenv');
-const { ObjectID } = require('bson');
+const {
+    ObjectID
+} = require('bson');
 dotenv.config();
 
 let app = express()
@@ -72,6 +74,8 @@ async function main() {
                 review
             } = req.body
 
+
+
             let results = await db.collection('artposts').updateOne({
                 '_id': ObjectId(req.params.id)
             }, {
@@ -110,6 +114,88 @@ async function main() {
         res.send(results)
     })
 
+        // FILTER - READ: SEARCH ART
+        app.get('/art_gallery/search', async (req, res) => {
+            let searchTerm = req.query.searchTerm // this "search" doesn't matter, you can put anything you want
+            let criteria = {}
+    
+            if (searchTerm) {
+                criteria['art_title'] = {
+                    '$regex': searchTerm,
+                    '$options': 'i'
+                }
+            }
+
+            let db = MongoUtil.getDB()
+            let results = await db.collection('artposts').find(criteria).toArray()
+    
+            res.status(200)
+            res.send(results)
+        })
+
+        // TEST (still not done yet)
+        // FILTER - READ: FILTER ART
+        app.get('/art_gallery/filter', async (req,res)=> {
+            let art_type = req.body.art_type // there's probably multiple art_type in the request body
+            let db = MongoUtil.getDB()
+            let results = await db.collection('artposts').find({
+                "art_type":art_type
+            }).toArray()
+    
+            res.status(200)
+            res.send(results)
+        })
+
+
+        // TEST (combined filter)
+        app.get('/art_gallery/combinedFilter', async (req,res)=> {
+            let art_type = req.body.art_type // there's probably multiple art_type in the request body
+            let db = MongoUtil.getDB()
+            let results = await db.collection('artposts').find({
+                '$and':[{
+                    'art_type':'digital'
+                },
+                {
+                    'art_subject':{
+                        '$all':["animal","nature"] // change to a variable
+                    }
+                }
+                    
+                ]
+            }).toArray()
+    
+            res.status(200)
+            res.send(results)
+        })
+
+
+    // TEST READ: ALL ART EXCEPT CURRENT
+    // Test 1
+    // app.get('/art_gallery/except/:id', async (req,res) => {
+    //     let db = MongoUtil.getDB()
+    //     let results = await db.collection('artposts').find({
+    //         '_id': {
+    //             '$nin': ObjectId(req.body.id)
+    //         }
+    //     })
+    //     res.status(200)
+    //     res.send(results)
+    // })
+
+    // Test 2
+    // app.get('/art_gallery/except/:id', async (req,res) => {
+    //     let db = MongoUtil.getDB()
+    //     let results = await db.collection('artposts').find({
+    //         '_id': {
+    //             '$not':{
+    //                 '$in':ObjectId(req.body.id)
+    //             }
+    //         }
+    //     })
+    //     res.status(200)
+    //     res.send(results)
+    // })
+
     // READ: ONE ART
     app.get('/art_gallery/:id', async (req, res) => {
         let db = MongoUtil.getDB()
@@ -135,16 +221,17 @@ async function main() {
         res.send(results)
     })
 
+    
 
     // ==================== UPDATE ====================
 
     // UPDATE: ART REVIEW COUNT
-    app.put('/artpost/updateReviewCount/:id', async (req,res) => {
+    app.put('/artpost/updateReviewCount/:id', async (req, res) => {
         let db = MongoUtil.getDB()
         let results = await db.collection('artposts').updateOne({
-            '_id':ObjectId(req.params.id)
-        },{
-            '$set':{
+            '_id': ObjectId(req.params.id)
+        }, {
+            '$set': {
                 'statistics.review_count': req.body.statistics.review_count
             }
         })
@@ -197,7 +284,7 @@ async function main() {
     // UPDATE: REVIEW
 
     app.put('/review/edit/:id', async (req, res) => {
-       
+
         let {
             reviewer_name,
             liked_post,
@@ -206,9 +293,9 @@ async function main() {
 
         let db = MongoUtil.getDB()
         let results = await db.collection('artposts').updateOne({
-            'reviews':{
-                '$elemMatch':{
-                    'id':ObjectId(req.params.id)
+            'reviews': {
+                '$elemMatch': {
+                    'id': ObjectId(req.params.id)
                 }
             }
         }, {
@@ -241,15 +328,15 @@ async function main() {
     app.delete('/review/delete/:id', async (req, res) => {
         let db = MongoUtil.getDB()
         let results = await db.collection('artposts').updateOne({
-            'reviews':{
-                '$elemMatch':{
-                    'id':ObjectId(req.params.id)
+            'reviews': {
+                '$elemMatch': {
+                    'id': ObjectId(req.params.id)
                 }
             }
-        },{
-            '$pull':{
-                'reviews':{
-                    'id':ObjectId(req.params.id)
+        }, {
+            '$pull': {
+                'reviews': {
+                    'id': ObjectId(req.params.id)
                 }
             }
         })
@@ -259,32 +346,24 @@ async function main() {
 
     // ==================== SEARCH FILTER ====================
 
-     // *** Muted out until filter/search
-    // READ: SEARCH ART
+
+    
+
     // app.get('/art_gallery/:search', async (req, res) => {
-    //     let art = req.query.search // this "search" doesn't matter, you can put anything you want
+    //     let searchTerm = req.query.search
+
+
     //     let criteria = {}
 
-    //     if (art) {
-    //         criteria['art'] = {
-    //             '$regex': "dog",
+    //     if (searchTerm) {
+    //         criteria['searchTerm'] = {
+    //             '$regex': searchTerm,
     //             '$options': 'i'
     //         }
     //     }
 
-        /*
-        criteria = {
-            art: {
-                $regex: dog, // this "dog" is the search bar input
-                $options: i
-            }
-        }
-        */
-
     //     let db = MongoUtil.getDB()
-    //     let results = await db.collection('artposts').find(criteria).sort({
-    //         post_date: -1
-    //     }).toArray()
+    //     let results = await db.collection('artposts').find(criteria).toArray()
 
     //     res.status(200)
     //     res.send(results)
