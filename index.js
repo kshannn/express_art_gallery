@@ -142,22 +142,23 @@ async function main() {
 
         // TEST (still not done yet)
         // FILTER - READ: FILTER ART
-        app.get('/art_gallery/filter', async (req,res)=> {
-            let art_type = req.body.art_type // there's probably multiple art_type in the request body => change the name in filteroption
-            let db = MongoUtil.getDB()
-            let results = await db.collection('artposts').find({
-                "art_type":art_type
-            }).toArray()
+        // app.get('/art_gallery/filter', async (req,res)=> {
+        //     let art_type = req.body.art_type // there's probably multiple art_type in the request body => change the name in filteroption
+        //     let db = MongoUtil.getDB()
+        //     let results = await db.collection('artposts').find({
+        //         "art_type":art_type
+        //     }).toArray()
     
-            res.status(200)
-            res.send(results)
-        })
+        //     res.status(200)
+        //     res.send(results)
+        // })
 
 
-        // TEST (combined filter)
-        app.get('/art_gallery/combinedFilter/:art_type', async (req,res)=> {
-            console.log(req.body)
-            // let {filter_art_type, filter_art_subject} = req.body // there's probably multiple art_type in the request body => change the name in filteroption
+        // FILTER - COMBINED FILTER FOR ART TYPE AND ART SUBJECT
+        app.get('/art_gallery/combinedFilter/:art_type/:art_subject', async (req,res)=> {
+            
+            let filteredArray = req.params.art_subject.split(",")       
+
             let db = MongoUtil.getDB()
             let results = await db.collection('artposts').find({
                 '$and':[{
@@ -165,7 +166,7 @@ async function main() {
                 },
                 {
                     'art_subject':{
-                        '$all':["animal","nature"] // change to a variable
+                        '$all':filteredArray 
                     }
                 }
                     
