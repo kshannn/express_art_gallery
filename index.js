@@ -114,9 +114,9 @@ async function main() {
         res.send(results)
     })
 
-        // FILTER - READ: SEARCH ART
+        // FILTER - READ: SEARCH ART OR ARTIST
         app.get('/art_gallery/search', async (req, res) => {
-            let searchTerm = req.query.searchTerm // this "search" doesn't matter, you can put anything you want
+            let searchTerm = req.query.q // this "search" doesn't matter, you can put anything you want
             let criteria = {}
             let criteria2 = {}
     
@@ -143,7 +143,7 @@ async function main() {
         // TEST (still not done yet)
         // FILTER - READ: FILTER ART
         app.get('/art_gallery/filter', async (req,res)=> {
-            let art_type = req.body.art_type // there's probably multiple art_type in the request body
+            let art_type = req.body.art_type // there's probably multiple art_type in the request body => change the name in filteroption
             let db = MongoUtil.getDB()
             let results = await db.collection('artposts').find({
                 "art_type":art_type
@@ -155,12 +155,13 @@ async function main() {
 
 
         // TEST (combined filter)
-        app.get('/art_gallery/combinedFilter', async (req,res)=> {
-            let art_type = req.body.art_type // there's probably multiple art_type in the request body
+        app.get('/art_gallery/combinedFilter/:art_type', async (req,res)=> {
+            console.log(req.body)
+            // let {filter_art_type, filter_art_subject} = req.body // there's probably multiple art_type in the request body => change the name in filteroption
             let db = MongoUtil.getDB()
             let results = await db.collection('artposts').find({
                 '$and':[{
-                    'art_type':'digital'
+                    'art_type':req.params.art_type
                 },
                 {
                     'art_subject':{
