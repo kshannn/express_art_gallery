@@ -140,19 +140,6 @@ async function main() {
             res.send(results)
         })
 
-        // TEST (still not done yet)
-        // FILTER - READ: FILTER ART
-        // app.get('/art_gallery/filter', async (req,res)=> {
-        //     let art_type = req.body.art_type // there's probably multiple art_type in the request body => change the name in filteroption
-        //     let db = MongoUtil.getDB()
-        //     let results = await db.collection('artposts').find({
-        //         "art_type":art_type
-        //     }).toArray()
-    
-        //     res.status(200)
-        //     res.send(results)
-        // })
-
 
         // FILTER - COMBINED FILTER FOR ART TYPE AND ART SUBJECT
         app.get('/art_gallery/combinedFilter/:art_type/:art_subject', async (req,res)=> {
@@ -169,7 +156,6 @@ async function main() {
                         '$all':filteredArray 
                     }
                 }
-                    
                 ]
             }).toArray()
     
@@ -179,31 +165,18 @@ async function main() {
 
 
     // TEST READ: ALL ART EXCEPT CURRENT
-    // Test 1
-    // app.get('/art_gallery/except/:id', async (req,res) => {
-    //     let db = MongoUtil.getDB()
-    //     let results = await db.collection('artposts').find({
-    //         '_id': {
-    //             '$nin': ObjectId(req.body.id)
-    //         }
-    //     })
-    //     res.status(200)
-    //     res.send(results)
-    // })
+    app.get('/art_gallery/except/:id', async (req,res) => {
+        let db = MongoUtil.getDB()
+        let results = await db.collection('artposts').find({
+            '_id': {
+                '$ne': ObjectId(req.params.id)
+            }
+        }).toArray();
 
-    // Test 2
-    // app.get('/art_gallery/except/:id', async (req,res) => {
-    //     let db = MongoUtil.getDB()
-    //     let results = await db.collection('artposts').find({
-    //         '_id': {
-    //             '$not':{
-    //                 '$in':ObjectId(req.body.id)
-    //             }
-    //         }
-    //     })
-    //     res.status(200)
-    //     res.send(results)
-    // })
+        res.status(200)
+        res.send(results)
+    })
+    
 
     // READ: ONE ART
     app.get('/art_gallery/:id', async (req, res) => {
