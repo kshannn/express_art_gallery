@@ -70,11 +70,8 @@ async function main() {
 
             let {
                 reviewer_name,
-                liked_post,
                 review
             } = req.body
-
-
 
             let results = await db.collection('artposts').updateOne({
                 '_id': ObjectId(req.params.id)
@@ -84,9 +81,11 @@ async function main() {
                         id: new ObjectId(),
                         review_date: new Date(),
                         reviewer_name,
-                        liked_post,
                         review
                     }
+                },
+                "$inc": {
+                    'statistics.review_count': 1
                 }
             })
 
@@ -94,6 +93,7 @@ async function main() {
             res.send(results)
 
         } catch (e) {
+            console.log(e);
             res.status(500)
             res.send('Unexpected internal server error')
         }
@@ -320,7 +320,11 @@ async function main() {
                 'reviews': {
                     'id': ObjectId(req.params.id)
                 }
+            },
+            '$inc':{
+                'statistics.review_count': -1
             }
+    
         })
         res.status(200)
         res.send(results)
