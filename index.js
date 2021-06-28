@@ -142,21 +142,23 @@ async function main() {
 
 
         // FILTER - COMBINED FILTER FOR ART TYPE AND ART SUBJECT
-        app.get('/art_gallery/combinedFilter/:art_type/:art_subject', async (req,res)=> {
-            
-            let filteredArray = req.params.art_subject.split(",")       
+        app.get('/art_gallery/combinedFilter', async (req,res)=> {
+            let criteria = {}
+
+            if(req.query.art_type){
+                criteria['art_type'] = req.query.art_type
+            }
+
+            if(req.query.art_subject){
+                criteria['art_subject'] = {
+                    '$all':req.query.art_subject.split(",") 
+                }
+            }
+            // let filteredArray = req.params.art_subject.split(",")       
 
             let db = MongoUtil.getDB()
             let results = await db.collection('artposts').find({
-                '$and':[{
-                    'art_type':req.params.art_type
-                },
-                {
-                    'art_subject':{
-                        '$all':filteredArray 
-                    }
-                }
-                ]
+                '$and':[criteria]
             }).toArray()
     
             res.status(200)
@@ -164,8 +166,45 @@ async function main() {
         })
 
 
-    // TEST READ: ALL ART EXCEPT CURRENT
-    app.get('/art_gallery/except/:id', async (req,res) => {
+        // TEST
+
+        // app.get('/art_gallery/combinedFilter/:art_type/:art_subject', async (req,res)=> {
+            
+        //     let filteredArray = req.params.art_subject.split(",")       
+
+        //     let db = MongoUtil.getDB()
+        //     let results = await db.collection('artposts').find({
+        //         '$or':[{
+        //             '$or':[{
+        //                 'art_type':req.params.art_type
+        //             },
+        //             {
+        //                 'art_subject':{
+        //                     '$all':filteredArray 
+        //                 }
+        //             }
+        //             ],
+    
+        //             '$and':[{
+        //                 'art_type':req.params.art_type
+        //             },
+        //             {
+        //                 'art_subject':{
+        //                     '$all':filteredArray 
+        //                 }
+        //             }
+        //             ]
+        //         }]
+                
+        //     }).toArray()
+    
+        //     res.status(200)
+        //     res.send(results)
+        // })
+
+
+    // READ: OTHER ART
+    app.get('/art_gallery/other/:id', async (req,res) => {
         let db = MongoUtil.getDB()
         let results = await db.collection('artposts').find({
             '_id': {
