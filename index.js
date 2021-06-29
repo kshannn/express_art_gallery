@@ -114,93 +114,55 @@ async function main() {
         res.send(results)
     })
 
-        // FILTER - READ: SEARCH ART OR ARTIST
-        app.get('/art_gallery/search', async (req, res) => {
-            let searchTerm = req.query.q // this "search" doesn't matter, you can put anything you want
-            let criteria = {}
-            let criteria2 = {}
-    
-            if (searchTerm) {
-                criteria['art_title'] = {
-                    '$regex': searchTerm,
-                    '$options': 'i'
-                }
-                criteria2['poster_name']= {
-                    '$regex': searchTerm,
-                    '$options': 'i'
-                }
+    // FILTER - READ: SEARCH ART OR ARTIST
+    app.get('/art_gallery/search', async (req, res) => {
+        let searchTerm = req.query.q // this "search" doesn't matter, you can put anything you want
+        let criteria = {}
+        let criteria2 = {}
+
+        if (searchTerm) {
+            criteria['art_title'] = {
+                '$regex': searchTerm,
+                '$options': 'i'
             }
-
-            let db = MongoUtil.getDB()
-            let results = await db.collection('artposts').find({
-                '$or':[criteria,criteria2]
-            }).toArray()
-    
-            res.status(200)
-            res.send(results)
-        })
-
-
-        // FILTER - COMBINED FILTER FOR ART TYPE AND ART SUBJECT
-        app.get('/art_gallery/combinedFilter', async (req,res)=> {
-            let criteria = {}
-
-            if(req.query.art_type){
-                criteria['art_type'] = req.query.art_type
+            criteria2['poster_name']= {
+                '$regex': searchTerm,
+                '$options': 'i'
             }
+        }
 
-            if(req.query.art_subject){
-                criteria['art_subject'] = {
-                    '$all':req.query.art_subject.split(",") 
-                }
+        let db = MongoUtil.getDB()
+        let results = await db.collection('artposts').find({
+            '$or':[criteria,criteria2]
+        }).toArray()
+
+        res.status(200)
+        res.send(results)
+    })
+
+
+    // FILTER - COMBINED FILTER FOR ART TYPE AND ART SUBJECT
+    app.get('/art_gallery/combinedFilter', async (req,res)=> {
+        let criteria = {}
+
+        if(req.query.art_type){
+            criteria['art_type'] = req.query.art_type
+        }
+
+        if(req.query.art_subject){
+            criteria['art_subject'] = {
+                '$all':req.query.art_subject.split(",") 
             }
-            // let filteredArray = req.params.art_subject.split(",")       
+        }     
 
-            let db = MongoUtil.getDB()
-            let results = await db.collection('artposts').find({
-                '$and':[criteria]
-            }).toArray()
-    
-            res.status(200)
-            res.send(results)
-        })
+        let db = MongoUtil.getDB()
+        let results = await db.collection('artposts').find({
+            '$and':[criteria]
+        }).toArray()
 
-
-        // TEST
-
-        // app.get('/art_gallery/combinedFilter/:art_type/:art_subject', async (req,res)=> {
-            
-        //     let filteredArray = req.params.art_subject.split(",")       
-
-        //     let db = MongoUtil.getDB()
-        //     let results = await db.collection('artposts').find({
-        //         '$or':[{
-        //             '$or':[{
-        //                 'art_type':req.params.art_type
-        //             },
-        //             {
-        //                 'art_subject':{
-        //                     '$all':filteredArray 
-        //                 }
-        //             }
-        //             ],
-    
-        //             '$and':[{
-        //                 'art_type':req.params.art_type
-        //             },
-        //             {
-        //                 'art_subject':{
-        //                     '$all':filteredArray 
-        //                 }
-        //             }
-        //             ]
-        //         }]
-                
-        //     }).toArray()
-    
-        //     res.status(200)
-        //     res.send(results)
-        // })
+        res.status(200)
+        res.send(results)
+    })
 
 
     // READ: OTHER ART
@@ -368,55 +330,7 @@ async function main() {
         res.status(200)
         res.send(results)
     })
-
-    // ==================== SEARCH FILTER ====================
-
-
     
-
-    // app.get('/art_gallery/:search', async (req, res) => {
-    //     let searchTerm = req.query.search
-
-
-    //     let criteria = {}
-
-    //     if (searchTerm) {
-    //         criteria['searchTerm'] = {
-    //             '$regex': searchTerm,
-    //             '$options': 'i'
-    //         }
-    //     }
-
-    //     let db = MongoUtil.getDB()
-    //     let results = await db.collection('artposts').find(criteria).toArray()
-
-    //     res.status(200)
-    //     res.send(results)
-    // })
-
-
-    // *** Muted out until filter/search
-    // READ: SEARCH REVIEW
-    // app.get('/review_list', async (req, res) => {
-    //     let review = req.query.search
-
-
-    //     let criteria = {}
-
-    //     if (review) {
-    //         criteria['review'] = {
-    //             '$regex': review,
-    //             '$options': 'i'
-    //         }
-    //     }
-
-    //     let db = MongoUtil.getDB()
-    //     let results = await db.collection('reviews').find(criteria).toArray()
-
-    //     res.status(200)
-    //     res.send(results)
-    // })
-
 }
 
 main();
