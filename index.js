@@ -166,18 +166,30 @@ async function main() {
 
 
     // READ: OTHER ART
+    // app.get('/art_gallery/other/:id', async (req,res) => {
+    //     let db = MongoUtil.getDB()
+    //     let results = await db.collection('artposts').find({
+    //         '_id': {
+    //             '$ne': ObjectId(req.params.id)
+    //         }
+    //     }).toArray();
+
+    //     res.status(200)
+    //     res.send(results)
+    // })
+    
     app.get('/art_gallery/other/:id', async (req,res) => {
         let db = MongoUtil.getDB()
         let results = await db.collection('artposts').find({
             '_id': {
-                '$ne': ObjectId(req.params.id)
+                '$nin': [ObjectId(req.params.id)]
             }
         }).toArray();
 
         res.status(200)
         res.send(results)
     })
-    
+
 
     // READ: ONE ART
     app.get('/art_gallery/:id', async (req, res) => {
