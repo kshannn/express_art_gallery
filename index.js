@@ -23,6 +23,7 @@ async function main() {
 
     // CREATE: ART POST
     app.post('/create/artpost', async (req, res) => {
+    
         try {
 
             let {
@@ -100,6 +101,21 @@ async function main() {
     })
 
 
+    // TEST: Add like
+    app.post('/:artid/like',async(req,res)=>{
+        let db = MongoUtil.getDB()
+        let results = await db.collection('artposts').updateOne({
+            '_id': ObjectId(req.params.artid)
+        },{
+            '$inc':{
+                'statistics.like_count': 1
+            }
+        })
+        res.status(200)
+        res.send("Success")
+    })
+
+
     // ==================== READ ====================
 
     // READ: ALL ART 
@@ -164,7 +180,7 @@ async function main() {
         res.send(results)
     })
 
-
+    // using $ne
     // READ: OTHER ART
     // app.get('/art_gallery/other/:id', async (req,res) => {
     //     let db = MongoUtil.getDB()
@@ -184,7 +200,7 @@ async function main() {
             '_id': {
                 '$nin': [ObjectId(req.params.id)]
             }
-        }).toArray();
+        }).limit(12).toArray();
 
         res.status(200)
         res.send(results)
