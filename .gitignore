@@ -7,6 +7,3 @@ __pycache__/
 node_modules/
 .env
 node_modules
-collection_artposts.json
-collection_reviews.json
-collection_tags.json
