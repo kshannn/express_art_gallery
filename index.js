@@ -23,7 +23,7 @@ async function main() {
 
     // CREATE: ART POST
     app.post('/create/artpost', async (req, res) => {
-    
+
         try {
 
             let {
@@ -64,7 +64,6 @@ async function main() {
     })
 
     // CREATE REVIEW
-
     app.post('/art_gallery/:id/create/review', async (req, res) => {
         try {
             let db = MongoUtil.getDB()
@@ -101,18 +100,25 @@ async function main() {
     })
 
 
-    // TEST: Add like
-    app.post('/:artid/like',async(req,res)=>{
-        let db = MongoUtil.getDB()
-        let results = await db.collection('artposts').updateOne({
-            '_id': ObjectId(req.params.artid)
-        },{
-            '$inc':{
-                'statistics.like_count': 1
-            }
-        })
-        res.status(200)
-        res.send("Success")
+    // UPDATE: LIKE COUNT
+    app.post('/:artid/like', async (req, res) => {
+        try {
+            let db = MongoUtil.getDB()
+            let results = await db.collection('artposts').updateOne({
+                '_id': ObjectId(req.params.artid)
+            }, {
+                '$inc': {
+                    'statistics.like_count': 1
+                }
+            })
+
+            res.status(200)
+            res.send("Success")
+
+        } catch (e) {
+            res.status(500)
+            res.send('Unexpected internal server error')
+        }
     })
 
 
@@ -120,249 +126,296 @@ async function main() {
 
     // READ: ALL ART 
     app.get('/art_gallery', async (req, res) => {
+        try {
+            let db = MongoUtil.getDB()
+            let results = await db.collection('artposts').find().sort({
+                post_date: -1
+            }).toArray()
 
-        let db = MongoUtil.getDB()
-        let results = await db.collection('artposts').find().sort({
-            post_date: -1
-        }).toArray()
+            res.status(200)
+            res.send(results)
 
-        res.status(200)
-        res.send(results)
+        } catch (e) {
+            res.status(500)
+            res.send('Unexpected internal server error')
+        }
     })
 
     // FILTER - READ: SEARCH ART OR ARTIST
     app.get('/art_gallery/search', async (req, res) => {
-        let searchTerm = req.query.q // this "search" doesn't matter, you can put anything you want
-        let criteria = {}
-        let criteria2 = {}
+        try {
+            let searchTerm = req.query.q
+            let criteria = {}
+            let criteria2 = {}
 
-        if (searchTerm) {
-            criteria['art_title'] = {
-                '$regex': searchTerm,
-                '$options': 'i'
+            if (searchTerm) {
+                criteria['art_title'] = {
+                    '$regex': searchTerm,
+                    '$options': 'i'
+                }
+                criteria2['poster_name'] = {
+                    '$regex': searchTerm,
+                    '$options': 'i'
+                }
             }
-            criteria2['poster_name']= {
-                '$regex': searchTerm,
-                '$options': 'i'
-            }
+
+            let db = MongoUtil.getDB()
+            let results = await db.collection('artposts').find({
+                '$or': [criteria, criteria2]
+            }).toArray()
+
+            res.status(200)
+            res.send(results)
+
+        } catch (e) {
+            res.status(500)
+            res.send('Unexpected internal server error')
         }
-
-        let db = MongoUtil.getDB()
-        let results = await db.collection('artposts').find({
-            '$or':[criteria,criteria2]
-        }).toArray()
-
-        res.status(200)
-        res.send(results)
     })
 
 
     // FILTER - COMBINED FILTER FOR ART TYPE AND ART SUBJECT
-    app.get('/art_gallery/combinedFilter', async (req,res)=> {
-        let criteria = {}
+    app.get('/art_gallery/combinedFilter', async (req, res) => {
+        try {
+            let criteria = {}
 
-        if(req.query.art_type){
-            criteria['art_type'] = req.query.art_type
-        }
-
-        if(req.query.art_subject){
-            criteria['art_subject'] = {
-                '$all':req.query.art_subject.split(",") 
+            if (req.query.art_type) {
+                criteria['art_type'] = req.query.art_type
             }
-        }     
 
-        let db = MongoUtil.getDB()
-        let results = await db.collection('artposts').find({
-            '$and':[criteria]
-        }).toArray()
+            if (req.query.art_subject) {
+                criteria['art_subject'] = {
+                    '$all': req.query.art_subject.split(",")
+                }
+            }
 
-        res.status(200)
-        res.send(results)
+            let db = MongoUtil.getDB()
+            let results = await db.collection('artposts').find({
+                '$and': [criteria]
+            }).toArray()
+
+            res.status(200)
+            res.send(results)
+
+        } catch (e) {
+            res.status(500)
+            res.send('Unexpected internal server error')
+        }
     })
 
-    // using $ne
-    // READ: OTHER ART
-    // app.get('/art_gallery/other/:id', async (req,res) => {
-    //     let db = MongoUtil.getDB()
-    //     let results = await db.collection('artposts').find({
-    //         '_id': {
-    //             '$ne': ObjectId(req.params.id)
-    //         }
-    //     }).toArray();
+    app.get('/art_gallery/other/:id', async (req, res) => {
+        try {
+            let db = MongoUtil.getDB()
+            let results = await db.collection('artposts').find({
+                '_id': {
+                    '$nin': [ObjectId(req.params.id)]
+                }
+            }).limit(12).toArray();
 
-    //     res.status(200)
-    //     res.send(results)
-    // })
-    
-    app.get('/art_gallery/other/:id', async (req,res) => {
-        let db = MongoUtil.getDB()
-        let results = await db.collection('artposts').find({
-            '_id': {
-                '$nin': [ObjectId(req.params.id)]
-            }
-        }).limit(12).toArray();
+            res.status(200)
+            res.send(results)
 
-        res.status(200)
-        res.send(results)
+        } catch (e) {
+            res.status(500)
+            res.send('Unexpected internal server error')
+        }
     })
 
 
     // READ: ONE ART
     app.get('/art_gallery/:id', async (req, res) => {
-        let db = MongoUtil.getDB()
-        let results = await db.collection('artposts').findOne({
-            '_id': ObjectId(req.params.id)
-        })
+        try {
+            let db = MongoUtil.getDB()
+            let results = await db.collection('artposts').findOne({
+                '_id': ObjectId(req.params.id)
+            })
 
-        res.status(200)
-        res.send(results)
+            res.status(200)
+            res.send(results)
+
+        } catch (e) {
+            res.status(500)
+            res.send('Unexpected internal server error')
+        }
     })
 
     // READ: ALL REVIEWS FOR ONE ART POST
     app.get('/art_gallery/:id/review_list', async (req, res) => {
-        let db = MongoUtil.getDB()
-        let results = await db.collection('artposts').find({
-            '_id': ObjectId(req.params.id)
-        }).project({
-            'reviews': 1
-        }).toArray()
+        try {
+            let db = MongoUtil.getDB()
+            let results = await db.collection('artposts').find({
+                '_id': ObjectId(req.params.id)
+            }).project({
+                'reviews': 1
+            }).toArray()
 
+            res.status(200)
+            res.send(results)
 
-        res.status(200)
-        res.send(results)
+        } catch (e) {
+            res.status(500)
+            res.send('Unexpected internal server error')
+        }
     })
 
-    
+
 
     // ==================== UPDATE ====================
 
     // UPDATE: ART REVIEW COUNT
     app.put('/artpost/updateReviewCount/:id', async (req, res) => {
-        let db = MongoUtil.getDB()
-        let results = await db.collection('artposts').updateOne({
-            '_id': ObjectId(req.params.id)
-        }, {
-            '$set': {
-                'statistics.review_count': req.body.statistics.review_count
-            }
-        })
+        try {
+            let db = MongoUtil.getDB()
+            let results = await db.collection('artposts').updateOne({
+                '_id': ObjectId(req.params.id)
+            }, {
+                '$set': {
+                    'statistics.review_count': req.body.statistics.review_count
+                }
+            })
 
-        res.status(200)
-        res.send(results)
+            res.status(200)
+            res.send(results)
+
+        } catch (e) {
+            res.status(500)
+            res.send('Unexpected internal server error')
+        }
     })
 
 
     // UPDATE: ART POST
     app.put('/artpost/edit/:id', async (req, res) => {
-
-        let {
-            poster_name,
-            image,
-            art_title,
-            art_type,
-            art_subject,
-            art_description,
-        } = req.body
-        let {
-            review_count,
-            like_count
-        } = req.body.statistics
-
-        let db = MongoUtil.getDB()
-        let results = await db.collection('artposts').updateOne({
-            '_id': ObjectId(req.params.id)
-        }, {
-            '$set': {
-                'post_date': new Date(),
+        try {
+            let {
                 poster_name,
                 image,
                 art_title,
                 art_type,
                 art_subject,
                 art_description,
-                statistics: {
-                    review_count,
-                    like_count
-                }
-            }
-        })
+            } = req.body
+            let {
+                review_count,
+                like_count
+            } = req.body.statistics
 
-        res.status(200)
-        res.send(results)
+            let db = MongoUtil.getDB()
+            let results = await db.collection('artposts').updateOne({
+                '_id': ObjectId(req.params.id)
+            }, {
+                '$set': {
+                    'post_date': new Date(),
+                    poster_name,
+                    image,
+                    art_title,
+                    art_type,
+                    art_subject,
+                    art_description,
+                    statistics: {
+                        review_count,
+                        like_count
+                    }
+                }
+            })
+
+            res.status(200)
+            res.send(results)
+
+        } catch (e) {
+            res.status(500)
+            res.send('Unexpected internal server error')
+        }
     })
 
 
     // UPDATE: REVIEW
 
     app.put('/review/edit/:id', async (req, res) => {
+        try {
+            let {
+                reviewer_name,
+                review
+            } = req.body
 
-        let {
-            reviewer_name,
-            liked_post,
-            review
-        } = req.body
-
-        let db = MongoUtil.getDB()
-        let results = await db.collection('artposts').updateOne({
-            'reviews': {
-                '$elemMatch': {
-                    'id': ObjectId(req.params.id)
+            let db = MongoUtil.getDB()
+            let results = await db.collection('artposts').updateOne({
+                'reviews': {
+                    '$elemMatch': {
+                        'id': ObjectId(req.params.id)
+                    }
                 }
-            }
-        }, {
+            }, {
 
-            '$set': {
-                'reviews.$.review_date': new Date(),
-                'reviews.$.reviewer_name': reviewer_name,
-                'reviews.$.liked_post': liked_post,
-                'reviews.$.review': review
-            }
-        })
+                '$set': {
+                    'reviews.$.review_date': new Date(),
+                    'reviews.$.reviewer_name': reviewer_name,
+                    'reviews.$.review': review
+                }
+            })
 
-        res.status(200)
-        res.send(results)
+            res.status(200)
+            res.send(results)
+
+        } catch (e) {
+            res.status(500)
+            res.send('Unexpected internal server error')
+        }
     })
 
     // ==================== DELETE ====================
 
     // DELETE: ART POST
     app.delete('/artpost/delete/:id', async (req, res) => {
-        let db = MongoUtil.getDB()
-        let results = await db.collection('artposts').deleteOne({
-            '_id': ObjectId(req.params.id)
-        })
-        res.status(200)
-        res.send(results)
+        try {
+            let db = MongoUtil.getDB()
+            let results = await db.collection('artposts').deleteOne({
+                '_id': ObjectId(req.params.id)
+            })
+
+            res.status(200)
+            res.send(results)
+
+        } catch (e) {
+            res.status(500)
+            res.send('Unexpected internal server error')
+        }
     })
 
     // DELETE: REVIEW
     app.delete('/review/delete/:id', async (req, res) => {
-        let db = MongoUtil.getDB()
-        let results = await db.collection('artposts').updateOne({
-            'reviews': {
-                '$elemMatch': {
-                    'id': ObjectId(req.params.id)
-                }
-            }
-        }, {
-            '$pull': {
+        try {
+            let db = MongoUtil.getDB()
+            let results = await db.collection('artposts').updateOne({
                 'reviews': {
-                    'id': ObjectId(req.params.id)
+                    '$elemMatch': {
+                        'id': ObjectId(req.params.id)
+                    }
                 }
-            },
-            '$inc':{
-                'statistics.review_count': -1
-            }
-    
-        })
-        res.status(200)
-        res.send(results)
+            }, {
+                '$pull': {
+                    'reviews': {
+                        'id': ObjectId(req.params.id)
+                    }
+                },
+                '$inc': {
+                    'statistics.review_count': -1
+                }
+
+            })
+            res.status(200)
+            res.send(results)
+
+        } catch (e) {
+            res.status(500)
+            res.send('Unexpected internal server error')
+        }
+
     })
-    
+
 }
 
 main();
-
 
 app.listen(process.env.PORT, () => {
     console.log('Server started')
