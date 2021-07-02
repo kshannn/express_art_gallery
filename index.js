@@ -99,29 +99,6 @@ async function main() {
         }
     })
 
-
-    // UPDATE: LIKE COUNT
-    app.post('/:artid/like', async (req, res) => {
-        try {
-            let db = MongoUtil.getDB()
-            let results = await db.collection('artposts').updateOne({
-                '_id': ObjectId(req.params.artid)
-            }, {
-                '$inc': {
-                    'statistics.like_count': 1
-                }
-            })
-
-            res.status(200)
-            res.send("Success")
-
-        } catch (e) {
-            res.status(500)
-            res.send('Unexpected internal server error')
-        }
-    })
-
-
     // ==================== READ ====================
 
     // READ: ALL ART 
@@ -203,6 +180,7 @@ async function main() {
         }
     })
 
+    // READ: OTHER ARTS
     app.get('/art_gallery/other/:id', async (req, res) => {
         try {
             let db = MongoUtil.getDB()
@@ -220,7 +198,6 @@ async function main() {
             res.send('Unexpected internal server error')
         }
     })
-
 
     // READ: ONE ART
     app.get('/art_gallery/:id', async (req, res) => {
@@ -328,7 +305,6 @@ async function main() {
         }
     })
 
-
     // UPDATE: REVIEW
 
     app.put('/review/edit/:id', async (req, res) => {
@@ -356,6 +332,27 @@ async function main() {
 
             res.status(200)
             res.send(results)
+
+        } catch (e) {
+            res.status(500)
+            res.send('Unexpected internal server error')
+        }
+    })
+
+    // UPDATE: LIKE COUNT
+    app.post('/:artid/like', async (req, res) => {
+        try {
+            let db = MongoUtil.getDB()
+            let results = await db.collection('artposts').updateOne({
+                '_id': ObjectId(req.params.artid)
+            }, {
+                '$inc': {
+                    'statistics.like_count': 1
+                }
+            })
+
+            res.status(200)
+            res.send("Success")
 
         } catch (e) {
             res.status(500)
