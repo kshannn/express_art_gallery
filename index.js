@@ -239,28 +239,6 @@ async function main() {
 
     // ==================== UPDATE ====================
 
-    // UPDATE: ART REVIEW COUNT
-    app.put('/artpost/updateReviewCount/:id', async (req, res) => {
-        try {
-            let db = MongoUtil.getDB()
-            let results = await db.collection('artposts').updateOne({
-                '_id': ObjectId(req.params.id)
-            }, {
-                '$set': {
-                    'statistics.review_count': req.body.statistics.review_count
-                }
-            })
-
-            res.status(200)
-            res.send(results)
-
-        } catch (e) {
-            res.status(500)
-            res.send('Unexpected internal server error')
-        }
-    })
-
-
     // UPDATE: ART POST
     app.put('/artpost/edit/:id', async (req, res) => {
         try {
